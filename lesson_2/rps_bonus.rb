@@ -1,32 +1,12 @@
-VALID_CHOICES = %w(r p x l s) || %w(rock paper scissors lizard spock)
-
-CHOICES = {'r' || 'rock' => :ROCK,
-           'p' || 'paper' => :PAPER,
-           'x' || 'scissors' => :SCISSORS,
-           'l' || 'lizard' => :LIZARD,
-           's' || 'spock' => :SPOCK }
+VALID_CHOICES = %w(r p x l s)
 
 WIN_CONDITIONS = {
-  'rock' => { beats: ['scissors, lizard'] },
-  'paper' => { beats: ['rock', 'spock'] },
-  'scissors' => { beats: ['paper', 'lizard'] },
-  'spock' => { beats: ['scissors', 'rock'] },
-  'lizard' => { beats: ['paper', 'spock'] }
+  'r': ['x', 'l'],
+  'p': ['r', 's'],
+  'x': ['p', 'l'],
+  's': ['x', 'r'],
+  'l': ['p', 's']
 }
-
-ACTION_DIALOGUE = {  
-  ['r', 'x'] => 'ROCK crushes SCISSORS',
-  ['r', 'l'] => 'ROCK crushes LIZARD',
-  ['p', 'r'] => 'PAPER covers ROCK',
-  ['p', 's'] => 'PAPER disproves SPOCK',
-  ['x', 'p'] => 'SCISSORS cuts PAPER',
-  ['x', 'l'] => 'SCISSORS decapitates LIZARD',
-  ['l', 'p'] => 'LIZARD eats PAPER',
-  ['l', 's'] => 'LIZARD poisons SPOCK',
-  ['s', 'r'] => 'SPOCK vaporizes ROCK',
-  ['s', 'x'] => 'SPOCK smashes SCISSORS' 
-}
-
 
 message = <<-MSG
 Welcome to Rock, Paper, Scissors, Lizard, Spock!
@@ -45,67 +25,78 @@ First to win 3 matches wins!
 Good luck!
 MSG
 
-def prompt(message)
-  Kernel.puts("=> #{message}")
-end
-
-def display_results(player, computer)
-  if win?(player, computer)
-    prompt("You won!")
-  elsif win?(computer, player)
-    prompt('Computer won!')
-  else
-    prompt("It's a tie!")
-  end
-end
-
-player_wins = ''
-computer_wins = ''
-
-def keep_score(player, computer)
-  if win?(player, computer)
-    player_wins += 1
-  elsif win?(computer, player)
-    computer_wins += 1
-  end
-  prompt("The score is: #{player_wins} to #{computer_wins}")
-end
-
-prompt(message)
-
 loop do
-  choice = ''
-  loop do
-    choice_prompt = <<-MSG
-    Choose one: 
-    rock or 'r'
-    paper or 'p'
-    scissors or 'x'
-    lizard or 'l'
-    spock or 's'
-    MSG
-    
-    prompt(choice_prompt)
-    choice = Kernel.gets().chomp()
+  def prompt(message)
+    Kernel.puts("=> #{message}")
+  end
 
-    if VALID_CHOICES.include?(choice)
-      break
-    else
-      prompt("That's not a valid choice.")
+  player_wins = 0
+  computer_wins = 0
+  current_player_wins = 0
+  current_computer_wins = 0
+  
+  
+  prompt(message)
+
+  loop do
+    choice = ''
+    
+    loop do
+      choice_prompt = <<-MSG
+      Choose one: 
+      'r' for rock
+      'p' for paper
+      'x' for scissors
+      'l' for lizard
+      's' for spock
+      MSG
+      
+      prompt(choice_prompt)
+      choice = Kernel.gets().chomp()
+
+      if VALID_CHOICES.include?(choice)
+        break
+      else
+        prompt("That's not a valid choice.")
+      end
+    end
+
+    computer_choice = VALID_CHOICES.sample
+
+    prompt("You chose: #{choice}: Computer chose: #{computer_choice}")
+
+    if choice == computer_choice
+      prompt("It's a tie!")
+    elsif WIN_CONDITIONS.key?(choice) &&
+          WIN_CONDITIONS.value?(computer_choice)
+      prompt("You win this round!")
+      current_player_wins = (player_wins += 1)
+    else WIN_CONDITIONS.key?(computer_choice) &&
+         WIN_CONDITIONS.value?(choice)
+      prompt("You lose this round!")
+      current_computer_wins = (computer_wins += 1)
+    end
+
+    prompt("The score is: #{current_player_wins} to #{current_computer_wins}")
+
+    break if current_player_wins == 3 || current_computer_wins == 3
+
+
+    def who_won?(player_wins, computer_wins)
+      if player_wins > computer_wins
+        prompt("You are the winner!")
+      else
+        prompt("Better luck next time...")
+      end
     end
   end
+  who_won?(current_player_wins, current_computer_wins)
 
-  computer_choice = VALID_CHOICES.sample
 
-  prompt("You chose: #{choice}: Computer chose: #{computer_choice}")
-
-  display_results(choice, computer_choice)
-
-  keep_score(player_wins, computer_wins)
-  
   prompt("Do you want to play again?")
   answer = Kernel.gets().chomp()
   break unless answer.downcase().start_with?('y')
+ 
 end
 
 prompt("Thank you for playing!")
