@@ -71,8 +71,7 @@ loop do
           WIN_CONDITIONS.value?(computer_choice)
       prompt("You win this round!")
       current_player_wins = (player_wins += 1)
-    else WIN_CONDITIONS.key?(computer_choice) &&
-         WIN_CONDITIONS.value?(choice)
+    else 
       prompt("You lose this round!")
       current_computer_wins = (computer_wins += 1)
     end
