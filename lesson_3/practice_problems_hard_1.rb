@@ -21,3 +21,4 @@ def dot_separated_ip_address?(input_string)
   true
   
 end
+
